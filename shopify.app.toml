@@ -1,0 +1,37 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "26bfb4a80734f6fab53d796c21a16bcf"
+name = "pet-profile"
+handle = "pet-profile-3"
+application_url = "https://liberia-longitude-graduation-sustained.trycloudflare.com"
+embedded = true
+
+[build]
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2025-07"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "customer_read_customers,customer_write_customers"
+
+[auth]
+redirect_urls = ["https://liberia-longitude-graduation-sustained.trycloudflare.com/auth/callback", "https://liberia-longitude-graduation-sustained.trycloudflare.com/auth/shopify/callback", "https://liberia-longitude-graduation-sustained.trycloudflare.com/api/auth/callback"]
+
+[app_proxy]
+prefix = "apps"
+subpath = "pet-profile"
+url = "https://liberia-longitude-graduation-sustained.trycloudflare.com/app-proxy/pet-profile"
+
+[pos]
+embedded = false

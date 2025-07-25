@@ -1,0 +1,47 @@
+api_version = "2025-07"
+
+[[extensions]]
+name = "Pet Profile Block"
+type = "ui_extension"
+handle = "pet-profile-ui"
+
+[[extensions.targeting]]
+target = "customer-account.profile.block.render"
+module = "./src/index.jsx"
+
+[extensions.capabilities]
+api_access = true
+network_access = true
+
+[[extensions.metafields]]
+namespace = "variables"
+key = "pet_type"
+[[extensions.metafields]]
+namespace = "variables"
+key = "stress_level"
+[[extensions.metafields]]
+namespace = "variables"
+key = "drug_usage"
+[[extensions.metafields]]
+namespace = "variables"
+key = "pet_age"
+[[extensions.metafields]]
+namespace = "variables"
+key = "pet_weight"
+
+[extensions.settings]
+[[extensions.settings.fields]]
+key = "heading"
+type = "single_line_text_field"
+name = "Block heading"
+description = "Displayed at the top of the block"
+[[extensions.settings.fields]]
+key = "show_weight"
+type = "boolean"
+name = "Show pet weight?"
+default = true
+[[extensions.settings.fields]]
+key = "show_drug_usage"
+type = "boolean"
+name = "Show drug usage?"
+default = true
