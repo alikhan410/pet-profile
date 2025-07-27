@@ -118,56 +118,168 @@ export const calculateDataQuality = (customers) => {
   };
 };
 
+// /**
+//  * Fetches customers with pagination and error handling
+//  * @param {Object} admin - Shopify admin API client
+//  * @param {number} maxCustomers - Maximum number of customers to fetch
+//  * @param {number} batchSize - Number of customers per batch
+//  * @returns {Promise<Object>} Object containing customers and metadata
+//  */
+// export const fetchCustomersWithPagination = async (admin, maxCustomers = 1000, batchSize = 100) => {
+//   try {
+//     // Get total customer count first
+//     const countResponse = await admin.graphql(`
+//       query getCustomerCount {
+//         customers(first: 1) {
+//           pageInfo {
+//             hasNextPage
+//           }
+//         }
+//       }
+//     `);
+    
+//     const countData = await countResponse.json();
+//     const hasCustomers = countData.data.customers.pageInfo.hasNextPage;
+    
+//     if (!hasCustomers) {
+//       return { 
+//         customers: [],
+//         totalCustomers: 0,
+//         error: null,
+//         paginationInfo: {
+//           hasMore: false,
+//           totalFetched: 0,
+//           maxCustomers
+//         }
+//       };
+//     }
+
+//     // Fetch customers with pagination
+//     let allCustomers = [];
+//     let hasNextPage = true;
+//     let cursor = null;
+//     let totalFetched = 0;
+
+//     while (hasNextPage && totalFetched < maxCustomers) {
+//       const response = await admin.graphql(`
+//         query getCustomersWithPetProfiles($first: Int!, $after: String) {
+//           customers(first: $first, after: $after) {
+//             pageInfo {
+//               hasNextPage
+//               hasPreviousPage
+//               startCursor
+//               endCursor
+//             }
+//             edges {
+//               node {
+//                 id
+//                 firstName
+//                 lastName
+//                 email
+//                 createdAt
+//                 updatedAt
+//                 state
+//                 verifiedEmail
+//                 numberOfOrders
+//                 pet_type: metafield(namespace: "variables", key: "pet_type") {
+//                   value
+//                 }
+//                 stress_level: metafield(namespace: "variables", key: "stress_level") {
+//                   value
+//                 }
+//                 drug_usage: metafield(namespace: "variables", key: "drug_usage") {
+//                   value
+//                 }
+//                 pet_age: metafield(namespace: "variables", key: "pet_age") {
+//                   value
+//                 }
+//                 pet_weight: metafield(namespace: "variables", key: "pet_weight") {
+//                   value
+//                 }
+//               }
+//             }
+//           }
+//         }
+//       `, {
+//         variables: {
+//           first: batchSize,
+//           after: cursor
+//         }
+//       });
+
+//       const responseJson = await response.json();
+      
+//       if (responseJson.errors) {
+//         console.error('GraphQL errors:', responseJson.errors);
+//         throw new Error('Failed to fetch customer data');
+//       }
+
+//       const customers = processCustomerData(responseJson.data.customers.edges);
+//       allCustomers = allCustomers.concat(customers);
+//       hasNextPage = responseJson.data.customers.pageInfo.hasNextPage;
+//       cursor = responseJson.data.customers.pageInfo.endCursor;
+//       totalFetched += customers.length;
+
+//       // Add a small delay to respect API rate limits
+//       if (hasNextPage && totalFetched < maxCustomers) {
+//         await new Promise(resolve => setTimeout(resolve, 100));
+//       }
+//     }
+
+//     return { 
+//       customers: allCustomers,
+//       totalCustomers: allCustomers.length,
+//       error: null,
+//       paginationInfo: {
+//         hasMore: hasNextPage,
+//         totalFetched,
+//         maxCustomers
+//       }
+//     };
+
+//   } catch (error) {
+//     console.error('Error fetching customer data:', error);
+    
+//     return { 
+//       customers: [],
+//       totalCustomers: 0,
+//       error: error.message,
+//       paginationInfo: {
+//         hasMore: false,
+//         totalFetched: 0,
+//         maxCustomers
+//       }
+//     };
+//   }
+// };
+
 /**
- * Fetches customers with pagination and error handling
+ * Fetches customers from a specific Shopify segment with pagination and error handling
  * @param {Object} admin - Shopify admin API client
  * @param {number} maxCustomers - Maximum number of customers to fetch
  * @param {number} batchSize - Number of customers per batch
  * @returns {Promise<Object>} Object containing customers and metadata
  */
-export const fetchCustomersWithPagination = async (admin, maxCustomers = 1000, batchSize = 100) => {
-  try {
-    // Get total customer count first
-    const countResponse = await admin.graphql(`
-      query getCustomerCount {
-        customers(first: 1) {
-          pageInfo {
-            hasNextPage
-          }
-        }
-      }
-    `);
-    
-    const countData = await countResponse.json();
-    const hasCustomers = countData.data.customers.pageInfo.hasNextPage;
-    
-    if (!hasCustomers) {
-      return { 
-        customers: [],
-        totalCustomers: 0,
-        error: null,
-        paginationInfo: {
-          hasMore: false,
-          totalFetched: 0,
-          maxCustomers
-        }
-      };
-    }
+export const fetchCustomersWithPagination = async (
+  admin,
+  maxCustomers = 1000,
+  batchSize = 100
+) => {
+  const segmentGID = "gid://shopify/Segment/537319178459"; // Pet Profile segment
 
-    // Fetch customers with pagination
+  try {
     let allCustomers = [];
     let hasNextPage = true;
     let cursor = null;
     let totalFetched = 0;
 
     while (hasNextPage && totalFetched < maxCustomers) {
-      const response = await admin.graphql(`
-        query getCustomersWithPetProfiles($first: Int!, $after: String) {
-          customers(first: $first, after: $after) {
+      const response = await admin.graphql(
+        `
+        query getSegmentCustomers($first: Int!, $after: String, $segmentId: ID!) {
+          customerSegmentMembers(first: $first, after: $after, segmentId: $segmentId) {
             pageInfo {
               hasNextPage
-              hasPreviousPage
-              startCursor
               endCursor
             }
             edges {
@@ -175,80 +287,85 @@ export const fetchCustomersWithPagination = async (admin, maxCustomers = 1000, b
                 id
                 firstName
                 lastName
-                email
+                defaultEmailAddress {
+                  emailAddress
+                }
                 createdAt
                 updatedAt
-                state
-                verifiedEmail
                 numberOfOrders
-                pet_type: metafield(namespace: "variables", key: "pet_type") {
-                  value
-                }
-                stress_level: metafield(namespace: "variables", key: "stress_level") {
-                  value
-                }
-                drug_usage: metafield(namespace: "variables", key: "drug_usage") {
-                  value
-                }
-                pet_age: metafield(namespace: "variables", key: "pet_age") {
-                  value
-                }
-                pet_weight: metafield(namespace: "variables", key: "pet_weight") {
-                  value
-                }
+                pet_type: metafield(namespace: "variables", key: "pet_type") { value }
+                stress_level: metafield(namespace: "variables", key: "stress_level") { value }
+                drug_usage: metafield(namespace: "variables", key: "drug_usage") { value }
+                pet_age: metafield(namespace: "variables", key: "pet_age") { value }
+                pet_weight: metafield(namespace: "variables", key: "pet_weight") { value }
               }
             }
           }
         }
-      `, {
-        variables: {
-          first: batchSize,
-          after: cursor
+      `,
+        {
+          variables: {
+            first: batchSize,
+            after: cursor,
+            segmentId: segmentGID,
+          },
         }
-      });
+      );
 
       const responseJson = await response.json();
-      
+
       if (responseJson.errors) {
-        console.error('GraphQL errors:', responseJson.errors);
-        throw new Error('Failed to fetch customer data');
+        console.error("GraphQL errors:", responseJson.errors);
+        throw new Error("Failed to fetch segment customer data");
       }
 
-      const customers = processCustomerData(responseJson.data.customers.edges);
+      const segmentMembers = responseJson.data.customerSegmentMembers;
+      const customers = segmentMembers.edges.map(({ node }) => ({
+        id: node.id,
+        firstName: node.firstName,
+        lastName: node.lastName,
+        email: node.defaultEmailAddress?.emailAddress || null,
+        createdAt: node.createdAt,
+        updatedAt: node.updatedAt,
+        numberOfOrders: node.numberOfOrders,
+        pet_type: node.pet_type?.value || null,
+        stress_level: node.stress_level?.value || null,
+        drug_usage: node.drug_usage?.value || null,
+        pet_age: node.pet_age?.value || null,
+        pet_weight: node.pet_weight?.value || null,
+      }));
+
       allCustomers = allCustomers.concat(customers);
-      hasNextPage = responseJson.data.customers.pageInfo.hasNextPage;
-      cursor = responseJson.data.customers.pageInfo.endCursor;
+      hasNextPage = segmentMembers.pageInfo.hasNextPage;
+      cursor = segmentMembers.pageInfo.endCursor;
       totalFetched += customers.length;
 
-      // Add a small delay to respect API rate limits
       if (hasNextPage && totalFetched < maxCustomers) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100)); // Respect rate limits
       }
     }
 
-    return { 
+    return {
       customers: allCustomers,
       totalCustomers: allCustomers.length,
       error: null,
       paginationInfo: {
         hasMore: hasNextPage,
         totalFetched,
-        maxCustomers
-      }
+        maxCustomers,
+      },
     };
-
   } catch (error) {
-    console.error('Error fetching customer data:', error);
-    
-    return { 
+    console.error("Error fetching segment customer data:", error);
+    return {
       customers: [],
       totalCustomers: 0,
       error: error.message,
       paginationInfo: {
         hasMore: false,
         totalFetched: 0,
-        maxCustomers
-      }
+        maxCustomers,
+      },
     };
   }
 };
