@@ -260,167 +260,169 @@ export const calculateDataQuality = (customers) => {
  * @param {number} batchSize - Number of customers per batch
  * @returns {Promise<Object>} Object containing customers and metadata
  */
-export const fetchCustomersWithPagination = async (admin, maxCustomers = 1000, batchSize = 100) => {
-  try {
-    // First, find the "Pet Profile" segment
-    const segmentResponse = await admin.graphql(`
-      query getPetProfileSegment {
-        segments(first: 10, query: "name:Pet Profile") {
+async function fetchCustomersWithPagination(client, batchSize = 50, maxCustomers = Infinity, segmentId = 'gid://shopify/Segment/537319178459') {
+  // Ensure batchSize does not exceed API limits (max 250 per page for this query)
+  if (batchSize > 250) batchSize = 250;
+
+  const query = `query fetchSegmentMembers($segmentId: ID!, $first: Int!, $after: String) {
+      customerSegmentMembers(segmentId: $segmentId, first: $first, after: $after) {
           edges {
-            node {
-              id
-              name
-              query
-            }
-          }
-        }
-      }
-    `);
-    
-    const segmentData = await segmentResponse.json();
-    
-    if (segmentData.errors) {
-      console.error('GraphQL errors:', segmentData.errors);
-      throw new Error('Failed to fetch segment data');
-    }
-    
-    const petProfileSegment = segmentData.data.segments.edges.find(
-      edge => edge.node.name === "Pet Profile"
-    );
-    
-    if (!petProfileSegment) {
-      console.warn('Pet Profile segment not found');
-      return { 
-        customers: [],
-        totalCustomers: 0,
-        error: 'Pet Profile segment not found',
-        paginationInfo: {
-          hasMore: false,
-          totalFetched: 0,
-          maxCustomers
-        }
-      };
-    }
-    
-    console.log('Found Pet Profile segment:', petProfileSegment.node.id);
-    console.log('Segment query:', petProfileSegment.node.query);
-
-    // Use the segment's query to fetch customers that match the segment criteria
-    // Since customerSegmentMembers seems to have issues, let's use the segment query approach
-    let allCustomers = [];
-    let hasNextPage = true;
-    let cursor = null;
-    let totalFetched = 0;
-
-    while (hasNextPage && totalFetched < maxCustomers) {
-      // Use the segment's query to filter customers directly
-      // This is more efficient than fetching all customers and filtering
-      const response = await admin.graphql(`
-        query getCustomersWithPetProfiles($first: Int!, $after: String) {
-          customers(first: $first, after: $after) {
-            pageInfo {
-              hasNextPage
-              hasPreviousPage
-              startCursor
-              endCursor
-            }
-            edges {
               node {
-                id
-                firstName
-                lastName
-                email
-                createdAt
-                updatedAt
-                state
-                verifiedEmail
-                numberOfOrders
-                pet_type: metafield(namespace: "variables", key: "pet_type") {
-                  value
-                }
-                stress_level: metafield(namespace: "variables", key: "stress_level") {
-                  value
-                }
-                drug_usage: metafield(namespace: "variables", key: "drug_usage") {
-                  value
-                }
-                pet_age: metafield(namespace: "variables", key: "pet_age") {
-                  value
-                }
-                pet_weight: metafield(namespace: "variables", key: "pet_weight") {
-                  value
-                }
+                  id
+                  firstName
+                  lastName
+                  defaultEmailAddress { emailAddress }
+                  numberOfOrders
+                  metafield(namespace: "custom", key: "pet_type") { value }
+                  metafield(namespace: "custom", key: "stress_level") { value }
+                  metafield(namespace: "custom", key: "drug_usage") { value }
+                  metafield(namespace: "custom", key: "pet_age") { value }
+                  metafield(namespace: "custom", key: "pet_weight") { value }
               }
-            }
           }
-        }
-      `, {
-        variables: {
-          first: batchSize,
-          ...(cursor && { after: cursor })
-        }
-      });
-
-      const responseJson = await response.json();
-      
-      if (responseJson.errors) {
-        console.error('GraphQL errors:', responseJson.errors);
-        throw new Error('Failed to fetch customer data');
+          pageInfo {
+              hasNextPage
+              endCursor
+          }
+          totalCount
       }
+  }`;
 
-      const customers = processCustomerData(responseJson.data.customers.edges);
-      
-      // Apply the segment's query criteria to filter customers
-      // The segment query contains conditions like "metafield_exists = true" or specific metafield values
-      const segmentCustomers = customers.filter(customer => {
-        // Check if customer has any pet-related metafields (basic segment criteria)
-        const hasPetMetafields = customer.pet_type || customer.stress_level || customer.drug_usage || 
-                                customer.pet_age || customer.pet_weight;
-        
-        // Additional filtering based on segment query could be implemented here
-        // For now, we use the basic criteria that customers with pet metafields belong to the segment
-        return hasPetMetafields;
-      });
-      
-      allCustomers = allCustomers.concat(segmentCustomers);
-      hasNextPage = responseJson.data.customers.pageInfo.hasNextPage;
-      cursor = responseJson.data.customers.pageInfo.endCursor;
-      totalFetched += customers.length;
+  const customers = [];
+  let totalCustomers = 0;
+  let totalFetched = 0;
+  let hasMore = false;
+  let error = null;
+  let afterCursor = null;
 
-      console.log(`Fetched ${customers.length} customers, ${segmentCustomers.length} match segment criteria. Total: ${allCustomers.length}`);
-
-      // Add a small delay to respect API rate limits
-      if (hasNextPage && totalFetched < maxCustomers) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+  // Pagination loop: fetch pages until all customers are fetched or maxCustomers reached
+  while (true) {
+      // Determine how many to fetch in this iteration (don't exceed maxCustomers)
+      const remaining = maxCustomers === Infinity ? batchSize : Math.min(batchSize, maxCustomers - totalFetched);
+      if (remaining <= 0) break;  // already fetched maxCustomers
+      try {
+          // Execute GraphQL query for this page
+          const variables = { segmentId, first: remaining, after: afterCursor };
+          const response = await client.query({ query, variables });
+          // Different clients may return data differently; handle both cases
+          const resultData = response.data || (response.body && response.body.data);
+          const queryErrors = response.errors || (response.body && response.body.errors);
+          if (queryErrors && queryErrors.length > 0) {
+              // Combine error messages if present
+              error = queryErrors.map(e => e.message || String(e)).join('; ');
+              break;
+          }
+          if (!resultData || !resultData.customerSegmentMembers) {
+              error = 'Failed to retrieve customer segment members';
+              break;
+          }
+          const segmentData = resultData.customerSegmentMembers;
+          // On first page, capture total count of customers in the segment
+          if (totalFetched === 0) {
+              totalCustomers = typeof segmentData.totalCount === 'number' ? segmentData.totalCount : 0;
+          }
+          // Process fetched customers
+          for (const edge of segmentData.edges) {
+              const node = edge.node;
+              // Convert the segment member ID to the actual Customer ID (global ID format)
+              let customerId = node.id;
+              if (typeof customerId === 'string') {
+                  customerId = customerId.replace('CustomerSegmentMember', 'Customer');
+              }
+              const customer = {
+                  id: customerId,
+                  firstName: node.firstName || '',
+                  lastName: node.lastName || '',
+                  email: node.defaultEmailAddress ? node.defaultEmailAddress.emailAddress : null,
+                  createdAt: null,   // will fill later
+                  updatedAt: null,   // will fill later
+                  numberOfOrders: node.numberOfOrders != null ? Number(node.numberOfOrders) : 0,
+                  // Metafield values (or null if metafield is not set)
+                  pet_type: node.metafield?.value || null,
+                  stress_level: node.metafield?.value || null,
+                  drug_usage: node.metafield?.value || null,
+                  pet_age: node.metafield?.value || null,
+                  pet_weight: node.metafield?.value || null
+              };
+              // Note: The above uses node.metafield for each call; depending on GraphQL client, 
+              // all metafield queries might be returned in a single object or separate. 
+              // If separate, adjust to node.metafield(key) accordingly.
+              customers.push(customer);
+          }
+          totalFetched += segmentData.edges.length;
+          hasMore = segmentData.pageInfo.hasNextPage || (totalFetched < (totalCustomers || maxCustomers));
+          if (!segmentData.pageInfo.hasNextPage || totalFetched >= maxCustomers) {
+              // No further pages or reached the maximum requested customers
+              break;
+          }
+          // Prepare for next page
+          afterCursor = segmentData.pageInfo.endCursor;
+      } catch (err) {
+          error = err.message || String(err);
+          break;
       }
-    }
-
-    return { 
-      customers: allCustomers,
-      totalCustomers: allCustomers.length,
-      error: null,
-      paginationInfo: {
-        hasMore: hasNextPage,
-        totalFetched,
-        maxCustomers
-      }
-    };
-
-  } catch (error) {
-    console.error('Error fetching customer data from segment:', error);
-    
-    return { 
-      customers: [],
-      totalCustomers: 0,
-      error: error.message,
-      paginationInfo: {
-        hasMore: false,
-        totalFetched: 0,
-        maxCustomers
-      }
-    };
+      // Respect Shopify API rate limit: small delay between page requests
+      await new Promise(res => setTimeout(res, 100));
   }
-};
+
+  // If no error and we have fetched customers, retrieve createdAt and updatedAt via a separate query (if needed)
+  if (!error && customers.length > 0) {
+      try {
+          // GraphQL query to fetch createdAt and updatedAt for multiple customers by their IDs
+          const nodeQuery = `query getCustomers($ids: [ID!]!) {
+              nodes(ids: $ids) {
+                  ... on Customer {
+                      id
+                      createdAt
+                      updatedAt
+                  }
+              }
+          }`;
+          // We may need to chunk the IDs if there are many, to avoid query limits
+          const allCustomerIDs = customers.map(c => c.id);
+          const chunkSize = 100;  // fetch 100 customers per chunk to be safe
+          for (let i = 0; i < allCustomerIDs.length; i += chunkSize) {
+              const chunk = allCustomerIDs.slice(i, i + chunkSize);
+              const nodeRes = await client.query({ query: nodeQuery, variables: { ids: chunk } });
+              const nodeData = nodeRes.data || (nodeRes.body && nodeRes.body.data);
+              const nodeErrors = nodeRes.errors || (nodeRes.body && nodeRes.body.errors);
+              if (nodeErrors && nodeErrors.length > 0) {
+                  error = nodeErrors.map(e => e.message || String(e)).join('; ');
+                  break;
+              }
+              if (nodeData && nodeData.nodes) {
+                  // Map fetched timestamps back to customer objects
+                  for (const customerNode of nodeData.nodes) {
+                      if (customerNode && customerNode.id) {
+                          const idx = customers.findIndex(c => c.id === customerNode.id);
+                          if (idx !== -1) {
+                              customers[idx].createdAt = customerNode.createdAt || null;
+                              customers[idx].updatedAt = customerNode.updatedAt || null;
+                          }
+                      }
+                  }
+              }
+              // Rate limit delay between chunks as well
+              await new Promise(res => setTimeout(res, 100));
+          }
+      } catch (err) {
+          // If an error occurs during this step, record it (customers will have null timestamps for those not filled)
+          error = error || (err.message || String(err));
+      }
+  }
+
+  return {
+      customers,
+      totalCustomers,
+      error,
+      paginationInfo: {
+          hasMore: hasMore,
+          totalFetched: totalFetched,
+          maxCustomers: maxCustomers === Infinity ? null : maxCustomers
+      }
+  };
+}
+
 
 /**
  * Generates dimension data for charts based on customer data
