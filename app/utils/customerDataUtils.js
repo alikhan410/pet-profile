@@ -349,7 +349,7 @@ export const fetchCustomersWithPagination = async (admin, maxCustomers = 1000, b
         variables: {
           segmentId: petProfileSegment.node.id,
           first: batchSize,
-          after: cursor
+          ...(cursor && { after: cursor })
         }
       });
 
