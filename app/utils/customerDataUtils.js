@@ -290,9 +290,6 @@ export const fetchCustomersWithPagination = async (
                 defaultEmailAddress {
                   emailAddress
                 }
-                createdAt
-                updatedAt
-                numberOfOrders
                 pet_type: metafield(namespace: "variables", key: "pet_type") { value }
                 stress_level: metafield(namespace: "variables", key: "stress_level") { value }
                 drug_usage: metafield(namespace: "variables", key: "drug_usage") { value }
@@ -325,9 +322,6 @@ export const fetchCustomersWithPagination = async (
         firstName: node.firstName,
         lastName: node.lastName,
         email: node.defaultEmailAddress?.emailAddress || null,
-        createdAt: node.createdAt,
-        updatedAt: node.updatedAt,
-        numberOfOrders: node.numberOfOrders,
         pet_type: node.pet_type?.value || null,
         stress_level: node.stress_level?.value || null,
         drug_usage: node.drug_usage?.value || null,
