@@ -140,7 +140,7 @@ function PetProfile() {
     }
 
     try {
-      const response = await fetch("https://re-maldives-scoop-stripes.trycloudflare.com/app-proxy/pet-profile", {
+      const response = await fetch("https://pet-profile-ruby.vercel.app/app-proxy/pet-profile", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
