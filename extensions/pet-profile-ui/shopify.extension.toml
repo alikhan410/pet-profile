@@ -1,3 +1,4 @@
+# https://shopify.dev/docs/apps/build/customer-accounts/
 api_version = "2025-07"
 
 [[extensions]]
@@ -30,18 +31,21 @@ namespace = "variables"
 key = "pet_weight"
 
 [extensions.settings]
+
 [[extensions.settings.fields]]
 key = "heading"
 type = "single_line_text_field"
 name = "Block heading"
 description = "Displayed at the top of the block"
-[[extensions.settings.fields]]
-key = "show_weight"
-type = "boolean"
-name = "Show pet weight?"
-default = true
-[[extensions.settings.fields]]
-key = "show_drug_usage"
-type = "boolean"
-name = "Show drug usage?"
-default = true
+
+# [[extensions.settings.fields]]
+# key = "show_weight"
+# type = "boolean"
+# name = "Show pet weight?"
+# default = true
+
+# [[extensions.settings.fields]]
+# key = "show_drug_usage"
+# type = "boolean"
+# name = "Show drug usage?"
+# default = true

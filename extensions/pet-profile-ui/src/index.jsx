@@ -5,7 +5,7 @@ import {
   BlockStack,
   Card,
   TextBlock,
-  TextField,
+  Select,
   Button,
   Heading,
   Banner,
@@ -14,9 +14,11 @@ import { useEffect, useState } from 'react';
 
 export default reactExtension('customer-account.profile.block.render', () => <PetProfile />);
 
+// https://shopify.dev/docs/apps/build/customer-accounts/metafields
+// https://shopify.dev/docs/apps/build/customer-accounts/
 function PetProfile() {
   const { sessionToken } = useApi();
-  const { heading, show_weight, show_drug_usage } = useSettings();
+  const { heading} = useSettings();
 
   const [token, setToken] = useState(null);
   const [fields, setFields] = useState({
@@ -28,6 +30,45 @@ function PetProfile() {
   });
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState(null);
+
+  // Restricted options for validation
+  const fieldOptions = {
+    pet_age: [
+      { label: 'Select Pet Age', value: '' },
+      { label: '1-6', value: '1-6' },
+      { label: '7-12', value: '7-12' },
+      { label: '13-20', value: '13-20' }
+    ],
+    drug_usage: [
+      { label: 'Select Drug Usage', value: '' },
+      { label: 'Allergies', value: 'allergies' },
+      { label: 'Gut Health and Immune Support', value: 'Gut Health and Immune Support' },
+      { label: 'Hip and Joint Health', value: 'Hip and Joint Health' },
+      { label: 'Longevity', value: 'Longevity' },
+      { label: 'Anxiety', value: 'Anxiety' },
+      { label: 'Skin or Paw Irritation', value: 'Skin or Paw Irritation' }
+    ],
+    pet_type: [
+      { label: 'Select Pet Species', value: '' },
+      { label: 'Dog', value: 'Dog' },
+      { label: 'Cat', value: 'Cat' },
+      { label: 'Small Animal', value: 'small animal' }
+    ],
+    stress_level: [
+      { label: 'Select Stress Level', value: '' },
+      { label: 'Low Discomfort or Stress', value: 'low discomfort or stress' },
+      { label: '2', value: '2' },
+      { label: 'Moderate Discomfort or Stress', value: 'moderate discomfort or stress' },
+      { label: '4', value: '4' },
+      { label: 'Severe Discomfort or Stress', value: 'severe discomfort or stress' }
+    ],
+    pet_weight: [
+      { label: 'Select Pet Weight', value: '' },
+      { label: 'Under 20lbs', value: 'under 20lbs' },
+      { label: '20-50lbs', value: '20-50lbs' },
+      { label: '50+lbs', value: '50+lbs' }
+    ]
+  };
 
   // Load metafields via Storefront API
   useEffect(() => {
@@ -78,19 +119,38 @@ function PetProfile() {
     setStatus(null);
   };
 
+  const validateFields = () => {
+    const errors = [];
+    
+    if (!fields.pet_age) errors.push('Pet Age is required');
+    if (!fields.drug_usage) errors.push('Drug Usage is required');
+    if (!fields.pet_type) errors.push('Pet Species is required');
+    if (!fields.stress_level) errors.push('Stress Level is required');
+    if (!fields.pet_weight) errors.push('Pet Weight is required');
+    
+    return errors;
+  };
+
   const handleSubmit = async () => {
+    const validationErrors = validateFields();
+    
+    if (validationErrors.length > 0) {
+      setStatus({ type: 'error', message: validationErrors.join(', ') });
+      return;
+    }
+
     try {
-      const response = await fetch("https://wider-teens-excel-socket.trycloudflare.com/app-proxy/pet-profile", {
+      const response = await fetch("https://re-maldives-scoop-stripes.trycloudflare.com/app-proxy/pet-profile", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ ...fields }),  // 🔸 Removed hardcoded customerId
+        body: JSON.stringify({ ...fields }),
       });
       if (!response.ok) throw new Error('Failed to save data');
-      setStatus({ type: 'success', message: 'Profile saved' });
+      setStatus({ type: 'success', message: 'Profile saved successfully!' });
     } catch (err) {
       setStatus({ type: 'error', message: err.message });
     }
@@ -109,36 +169,42 @@ function PetProfile() {
         {status?.type === 'success' && <Banner status="success">{status.message}</Banner>}
         {status?.type === 'error' && <Banner status="critical">{status.message}</Banner>}
 
-        <TextField
-          label="Pet Type"
+        <Select
+          label="Pet Species"
+          options={fieldOptions.pet_type}
           value={fields.pet_type}
           onChange={(val) => handleChange('pet_type', val)}
         />
-        <TextField
+        
+        <Select
           label="Stress Level"
+          options={fieldOptions.stress_level}
           value={fields.stress_level}
           onChange={(val) => handleChange('stress_level', val)}
         />
-        {show_drug_usage && (
-          <TextField
-            label="Drug Usage"
-            value={fields.drug_usage}
-            onChange={(val) => handleChange('drug_usage', val)}
-          />
-        )}
-        <TextField
+    
+        <Select
+          label="Drug Usage"
+          options={fieldOptions.drug_usage}
+          value={fields.drug_usage}
+          onChange={(val) => handleChange('drug_usage', val)}
+        />
+     
+        <Select
           label="Pet Age"
+          options={fieldOptions.pet_age}
           value={fields.pet_age}
           onChange={(val) => handleChange('pet_age', val)}
         />
-        {show_weight && (
-          <TextField
-            label="Pet Weight"
-            value={fields.pet_weight}
-            onChange={(val) => handleChange('pet_weight', val)}
-          />
-        )}
-        <Button onPress={handleSubmit}>Save</Button>
+      
+        <Select
+          label="Pet Weight"
+          options={fieldOptions.pet_weight}
+          value={fields.pet_weight}
+          onChange={(val) => handleChange('pet_weight', val)}
+        />
+   
+        <Button onPress={handleSubmit}>Save Profile</Button>
       </BlockStack>
     </Card>
   );
