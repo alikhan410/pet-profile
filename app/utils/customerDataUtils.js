@@ -3,6 +3,39 @@
  */
 
 /**
+ * Extracts the numeric ID from a Shopify GID (Global ID)
+ * @param {string} gid - Shopify Global ID (e.g., "gid:/shopify/CustomerSegmentMember/8483087548635")
+ * @returns {string} The numeric ID part
+ * 
+ * Examples:
+ * extractIdFromGid("gid:/shopify/CustomerSegmentMember/8483087548635") => "8483087548635"
+ * extractIdFromGid("gid://shopify/Customer/123456789") => "123456789"
+ * extractIdFromGid("gid://shopify/SomeOtherType/987654321") => "987654321"
+ * extractIdFromGid("123456789") => "123456789" (fallback for plain IDs)
+ */
+export const extractIdFromGid = (gid) => {
+  if (!gid || typeof gid !== 'string') return '';
+  
+  // Handle different GID formats
+  const patterns = [
+    /gid:\/\/shopify\/CustomerSegmentMember\/(\d+)/,
+    /gid:\/\/shopify\/Customer\/(\d+)/,
+    /gid:\/\/shopify\/(\w+)\/(\d+)/
+  ];
+  
+  for (const pattern of patterns) {
+    const match = gid.match(pattern);
+    if (match) {
+      return match[match.length - 1]; // Return the last captured group (the numeric ID)
+    }
+  }
+  
+  // Fallback: try to extract any numeric part
+  const numericMatch = gid.match(/(\d+)$/);
+  return numericMatch ? numericMatch[1] : gid;
+};
+
+/**
  * Validates customer data for required fields and data types
  * @param {Object} customer - Customer object to validate
  * @returns {Array} Array of validation error messages
@@ -67,7 +100,7 @@ export const getProfileCompleteness = (customer) => {
 export const processCustomerData = (edges) => {
   return edges.map(edge => {
     const customer = {
-      id: edge.node.id.split('/').pop(),
+      id: extractIdFromGid(edge.node.id),
       gid: edge.node.id,
       firstName: edge.node.firstName || '',
       lastName: edge.node.lastName || '',
@@ -318,7 +351,7 @@ export const fetchCustomersWithPagination = async (
 
       const segmentMembers = responseJson.data.customerSegmentMembers;
       const customers = segmentMembers.edges.map(({ node }) => ({
-        id: node.id,
+        id: extractIdFromGid(node.id),
         firstName: node.firstName,
         lastName: node.lastName,
         email: node.defaultEmailAddress?.emailAddress || null,

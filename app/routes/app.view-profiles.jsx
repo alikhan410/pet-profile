@@ -21,7 +21,7 @@ import {
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { authenticate } from "../shopify.server";
-import { fetchCustomersWithPagination, getProfileCompleteness } from "../utils/customerDataUtils";
+import { fetchCustomersWithPagination, getProfileCompleteness, extractIdFromGid } from "../utils/customerDataUtils";
 
 export const loader = async ({ request }) => {
   const { session, admin } = await authenticate.admin(request);
@@ -377,8 +377,10 @@ export default function CustomerProfilesPage() {
     useIndexResourceState(filteredCustomers);
 
   const handleCustomerClick = (customerId) => {
+    // Extract the numeric ID if it's a GID format
+    const extractedId = extractIdFromGid(customerId);
     const shopDomain = shop.replace('.myshopify.com', '');
-    const customerUrl = `https://admin.shopify.com/store/${shopDomain}/customers/${customerId}`;
+    const customerUrl = `https://admin.shopify.com/store/${shopDomain}/customers/${extractedId}`;
     window.open(customerUrl, '_blank');
   };
 
