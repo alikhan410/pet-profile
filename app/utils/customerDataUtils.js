@@ -260,7 +260,7 @@ export const calculateDataQuality = (customers) => {
  * @param {number} batchSize - Number of customers per batch
  * @returns {Promise<Object>} Object containing customers and metadata
  */
-async function fetchCustomersWithPagination(client, batchSize = 50, maxCustomers = Infinity, segmentId = 'gid://shopify/Segment/537319178459') {
+export async function fetchCustomersWithPagination(client, batchSize = 50, maxCustomers = Infinity, segmentId = 'gid://shopify/Segment/537319178459') {
   // Ensure batchSize does not exceed API limits (max 250 per page for this query)
   if (batchSize > 250) batchSize = 250;
 
