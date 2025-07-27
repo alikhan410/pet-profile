@@ -328,9 +328,6 @@ export const fetchCustomersWithPagination = async (admin, maxCustomers = 1000, b
                 firstName
                 lastName
                 displayName
-                defaultEmailAddress {
-                  email
-                }
                 numberOfOrders
                 amountSpent {
                   amount
@@ -383,8 +380,8 @@ export const fetchCustomersWithPagination = async (admin, maxCustomers = 1000, b
           gid: member.id,
           firstName: member.firstName || '',
           lastName: member.lastName || '',
-          email: member.defaultEmailAddress?.email || '',
-          displayName: member.displayName || `${member.firstName || ''} ${member.lastName || ''}`.trim() || member.defaultEmailAddress?.email || 'Unknown Customer',
+          email: '', // Email not available in CustomerSegmentMember query
+          displayName: member.displayName || `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Unknown Customer',
           numberOfOrders: member.numberOfOrders || 0,
           amountSpent: member.amountSpent ? {
             amount: member.amountSpent.amount || '0.0',
