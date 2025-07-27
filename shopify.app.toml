@@ -3,7 +3,7 @@
 client_id = "26bfb4a80734f6fab53d796c21a16bcf"
 name = "pet-profile"
 handle = "pet-profile-3"
-application_url = "https://walls-bone-select-quilt.trycloudflare.com"
+application_url = "https://pet-profile-ruby.vercel.app"
 embedded = true
 
 [build]
@@ -26,12 +26,12 @@ api_version = "2025-07"
 scopes = "customer_read_customers,customer_write_customers,write_customers"
 
 [auth]
-redirect_urls = ["https://walls-bone-select-quilt.trycloudflare.com/auth/callback", "https://walls-bone-select-quilt.trycloudflare.com/auth/shopify/callback", "https://walls-bone-select-quilt.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://pet-profile-ruby.vercel.app/auth/callback", "https://pet-profile-ruby.vercel.app/auth/shopify/callback", "https://pet-profile-ruby.vercel.app/api/auth/callback"]
 
 [app_proxy]
 prefix = "apps"
 subpath = "pet-profile"
-url = "https://walls-bone-select-quilt.trycloudflare.com/app-proxy/pet-profile"
+url = "https://pet-profile-ruby.vercel.app/app-proxy/pet-profile"
 
 [pos]
 embedded = false
