@@ -273,11 +273,11 @@ async function fetchCustomersWithPagination(client, batchSize = 50, maxCustomers
                   lastName
                   defaultEmailAddress { emailAddress }
                   numberOfOrders
-                  metafield(namespace: "custom", key: "pet_type") { value }
-                  metafield(namespace: "custom", key: "stress_level") { value }
-                  metafield(namespace: "custom", key: "drug_usage") { value }
-                  metafield(namespace: "custom", key: "pet_age") { value }
-                  metafield(namespace: "custom", key: "pet_weight") { value }
+                  metafield(namespace: "variables", key: "pet_type") { value }
+                  metafield(namespace: "variables", key: "stress_level") { value }
+                  metafield(namespace: "variables", key: "drug_usage") { value }
+                  metafield(namespace: "variables", key: "pet_age") { value }
+                  metafield(namespace: "variables", key: "pet_weight") { value }
               }
           }
           pageInfo {
