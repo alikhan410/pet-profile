@@ -422,12 +422,12 @@ export const generateDimensionData = (customers) => {
 
   const drugUsageData = [
     { name: 'Allergies', customers: parseInt(customers.filter(c => c.drug_usage && c.drug_usage.toLowerCase().includes('allergies')).length) },
-    { name: 'Gut Health and Immune Support', customers: parseInt(customers.filter(c => c.drug_usage === 'Gut Health and Immune Support').length) },
+    { name: 'Gut Health', customers: parseInt(customers.filter(c => c.drug_usage === 'Gut Health and Immune Support').length) },
     { name: 'Hip and Joint Health', customers: parseInt(customers.filter(c => c.drug_usage === 'Hip and Joint Health').length) },
     { name: 'Longevity', customers: parseInt(customers.filter(c => c.drug_usage === 'Longevity').length) },
     { name: 'Anxiety', customers: parseInt(customers.filter(c => c.drug_usage === 'Anxiety').length) },
     { name: 'Skin or Paw Irritation', customers: parseInt(customers.filter(c => c.drug_usage === 'Skin or Paw Irritation').length) }
-  ].filter(d => d.customers > 0);
+  ];
 
   const petWeightData = [
     { name: 'Under 20lbs', customers: parseInt(customers.filter(c => c.pet_weight === 'under 20lbs').length) },
@@ -447,7 +447,7 @@ export const generateDimensionData = (customers) => {
     { name: 'Moderate', customers: parseInt(customers.filter(c => c.stress_level === 'moderate discomfort or stress').length) },
     { name: '4', customers: parseInt(customers.filter(c => c.stress_level === '4').length) },
     { name: 'Severe', customers: parseInt(customers.filter(c => c.stress_level === 'severe discomfort or stress').length) }
-  ].filter(d => d.customers > 0);
+  ];
 
   return {
     pet_age: petAgeData,
