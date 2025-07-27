@@ -260,7 +260,7 @@ export const calculateDataQuality = (customers) => {
  * @param {number} batchSize - Number of customers per batch
  * @returns {Promise<Object>} Object containing customers and metadata
  */
-export async function fetchCustomersWithPagination(client, batchSize = 50, maxCustomers = Infinity, segmentId = 'gid://shopify/Segment/537319178459') {
+export async function fetchCustomersWithPagination(admin, batchSize = 50, maxCustomers = Infinity, segmentId = 'gid://shopify/Segment/537319178459') {
   // Ensure batchSize does not exceed API limits (max 250 per page for this query)
   if (batchSize > 250) batchSize = 250;
 
@@ -303,7 +303,7 @@ export async function fetchCustomersWithPagination(client, batchSize = 50, maxCu
       try {
           // Execute GraphQL query for this page
           const variables = { segmentId, first: remaining, after: afterCursor };
-          const response = await client.query({ query, variables });
+          const response = await admin.graphql({ query, variables });
           // Different clients may return data differently; handle both cases
           const resultData = response.data || (response.body && response.body.data);
           const queryErrors = response.errors || (response.body && response.body.errors);
@@ -383,7 +383,7 @@ export async function fetchCustomersWithPagination(client, batchSize = 50, maxCu
           const chunkSize = 100;  // fetch 100 customers per chunk to be safe
           for (let i = 0; i < allCustomerIDs.length; i += chunkSize) {
               const chunk = allCustomerIDs.slice(i, i + chunkSize);
-              const nodeRes = await client.query({ query: nodeQuery, variables: { ids: chunk } });
+              const nodeRes = await admin.graphql({ query: nodeQuery, variables: { ids: chunk } });
               const nodeData = nodeRes.data || (nodeRes.body && nodeRes.body.data);
               const nodeErrors = nodeRes.errors || (nodeRes.body && nodeRes.body.errors);
               if (nodeErrors && nodeErrors.length > 0) {
