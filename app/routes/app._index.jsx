@@ -12,12 +12,9 @@ import {
   BlockStack,
   InlineStack,
   InlineGrid,
-  Divider,
   Icon,
   Tooltip,
   Banner,
-  Spinner,
-  Toast,
 } from '@shopify/polaris';
 import {
   EmailIcon,

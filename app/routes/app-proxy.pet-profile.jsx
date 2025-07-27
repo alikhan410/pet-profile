@@ -1,5 +1,4 @@
 import { authenticate, unauthenticated } from '../shopify.server';
-import prisma from "../db.server";
 
 const handleOptions = () =>
   new Response(null, {
