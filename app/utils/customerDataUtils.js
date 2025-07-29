@@ -298,7 +298,7 @@ export const fetchCustomersWithPagination = async (
   maxCustomers = 1000,
   batchSize = 100
 ) => {
-  const segmentGID = "gid://shopify/Segment/537319178459"; // Pet Profile segment
+  const segmentGID = `gid://shopify/Segment/${process.env.PET_PROFILE_SEGMENT_ID_DEV}`; // Pet Profile segment
 
   try {
     let allCustomers = [];

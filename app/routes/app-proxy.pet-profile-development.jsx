@@ -67,6 +67,8 @@ export const action = async ({ request }) => {
       }
     }
   `;
+    
+    // Prepare metafields array with pet profile data
     const metafieldsInput = [
       { ownerId: customerGID, namespace: "variables", key: "pet_type", value: body.pet_type, type: "single_line_text_field" },
       { ownerId: customerGID, namespace: "variables", key: "stress_level", value: body.stress_level, type: "single_line_text_field" },
@@ -74,7 +76,18 @@ export const action = async ({ request }) => {
       { ownerId: customerGID, namespace: "variables", key: "pet_age", value: body.pet_age, type: "single_line_text_field" },
       { ownerId: customerGID, namespace: "variables", key: "pet_weight", value: body.pet_weight, type: "single_line_text_field" },
     ];
-    
+
+    // If this is the first submission, set the first_submission metafield value
+    if (body.isFirstSubmission) {
+      console.log("[pet-profile] First time submission detected, setting first_submission metafield");
+      metafieldsInput.push({
+        ownerId: customerGID,
+        namespace: "variables",
+        key: "first_submission",
+        value: "true",
+        type: "single_line_text_field"
+      });
+    }
 
     console.log("[pet-profile] Getting unauthenticated admin context for shop:", shop);
     const { admin } = await unauthenticated.admin(shop);

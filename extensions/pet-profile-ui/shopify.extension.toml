@@ -29,6 +29,9 @@ key = "pet_age"
 [[extensions.metafields]]
 namespace = "variables"
 key = "pet_weight"
+[[extensions.metafields]]
+namespace = "variables"
+key = "first_submission"
 
 [extensions.settings]
 
@@ -38,14 +41,9 @@ type = "single_line_text_field"
 name = "Block heading"
 description = "Displayed at the top of the block"
 
-# [[extensions.settings.fields]]
-# key = "show_weight"
-# type = "boolean"
-# name = "Show pet weight?"
-# default = true
-
-# [[extensions.settings.fields]]
-# key = "show_drug_usage"
-# type = "boolean"
-# name = "Show drug usage?"
-# default = true
+[[extensions.settings.fields]]
+key = "discount_code"
+type = "single_line_text_field"
+name = "First-time discount code"
+description = "Coupon code shown to users on their first profile submission"
+default = "WELCOME20"

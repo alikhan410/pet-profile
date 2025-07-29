@@ -18,7 +18,7 @@ export default reactExtension('customer-account.profile.block.render', () => <Pe
 // https://shopify.dev/docs/apps/build/customer-accounts/
 function PetProfile() {
   const { sessionToken } = useApi();
-  const { heading} = useSettings();
+  const { heading, discount_code } = useSettings();
 
   const [token, setToken] = useState(null);
   const [fields, setFields] = useState({
@@ -30,6 +30,8 @@ function PetProfile() {
   });
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState(null);
+  const [isFirstSubmission, setIsFirstSubmission] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Restricted options for validation
   const fieldOptions = {
@@ -89,6 +91,7 @@ function PetProfile() {
                 drug_usage: metafield(namespace: "variables", key: "drug_usage") { value }
                 pet_age: metafield(namespace: "variables", key: "pet_age") { value }
                 pet_weight: metafield(namespace: "variables", key: "pet_weight") { value }
+                first_submission: metafield(namespace: "variables", key: "first_submission") { value }
               }
             }
           ` })
@@ -96,6 +99,10 @@ function PetProfile() {
         const result = await response.json();
         const data = result?.data?.customer;
         if (!data) throw new Error('Customer not found');
+
+        // Check if this is the first submission
+        const hasSubmittedBefore = data.first_submission?.value === 'true';
+        setIsFirstSubmission(!hasSubmittedBefore);
 
         // Populate fields state with metafield values (or empty strings if null)
         setFields({
@@ -139,20 +146,40 @@ function PetProfile() {
       return;
     }
 
+    // Clear any previous status messages and set saving state
+    setStatus(null);
+    setSaving(true);
+
     try {
-      const response = await fetch("https://pet-profile-ruby.vercel.app/app-proxy/pet-profile", {
+      const response = await fetch("https://provincial-sodium-administration-relatives.trycloudflare.com/app-proxy/pet-profile-development", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ ...fields }),
+        body: JSON.stringify({ 
+          ...fields,
+          isFirstSubmission: isFirstSubmission 
+        }),
       });
       if (!response.ok) throw new Error('Failed to save data');
-      setStatus({ type: 'success', message: 'Profile saved successfully!' });
+      
+      // Show appropriate success message based on first submission
+      if (isFirstSubmission) {
+        const discountCode = discount_code || 'WELCOME10';
+        setStatus({ 
+          type: 'success', 
+          message: `Profile saved successfully! 🎉 Use code ${discountCode} for your first order!` 
+        });
+        setIsFirstSubmission(false);
+      } else {
+        setStatus({ type: 'success', message: 'Profile updated successfully!' });
+      }
     } catch (err) {
       setStatus({ type: 'error', message: err.message });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -168,6 +195,7 @@ function PetProfile() {
 
         {status?.type === 'success' && <Banner status="success">{status.message}</Banner>}
         {status?.type === 'error' && <Banner status="critical">{status.message}</Banner>}
+        {status?.type === 'info' && <Banner status="info">{status.message}</Banner>}
 
         <Select
           label="Pet Species"
@@ -204,7 +232,9 @@ function PetProfile() {
           onChange={(val) => handleChange('pet_weight', val)}
         />
    
-        <Button onPress={handleSubmit}>Save Profile</Button>
+        <Button onPress={handleSubmit} loading={saving} disabled={saving}>
+          {saving ? 'Saving...' : 'Save Profile'}
+        </Button>
       </BlockStack>
     </Card>
   );

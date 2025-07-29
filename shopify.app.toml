@@ -1,9 +1,9 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "26bfb4a80734f6fab53d796c21a16bcf"
-name = "pet-profile"
-handle = "pet-profile-3"
-application_url = "https://pet-profile-ruby.vercel.app"
+client_id = "6acd25526932cb9e1b886cf1f29015b2"
+name = "pet-profile-development"
+handle = "pet-profile-development"
+application_url = "https://provincial-sodium-administration-relatives.trycloudflare.com"
 embedded = true
 
 [build]
@@ -26,12 +26,12 @@ api_version = "2025-07"
 scopes = "customer_read_customers,customer_write_customers,write_customers,read_customers"
 
 [auth]
-redirect_urls = ["https://pet-profile-ruby.vercel.app/auth/callback", "https://pet-profile-ruby.vercel.app/auth/shopify/callback", "https://pet-profile-ruby.vercel.app/api/auth/callback"]
+redirect_urls = ["https://provincial-sodium-administration-relatives.trycloudflare.com/auth/callback", "https://provincial-sodium-administration-relatives.trycloudflare.com/auth/shopify/callback", "https://provincial-sodium-administration-relatives.trycloudflare.com/api/auth/callback"]
 
 [app_proxy]
 prefix = "apps"
-subpath = "pet-profile"
-url = "https://pet-profile-ruby.vercel.app/app-proxy/pet-profile"
+subpath = "pet-profile-development"
+url = "https://provincial-sodium-administration-relatives.trycloudflare.com/app-proxy/pet-profile-development"
 
 [pos]
 embedded = false
