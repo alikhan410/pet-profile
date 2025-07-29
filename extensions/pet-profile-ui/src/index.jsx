@@ -170,7 +170,7 @@ function PetProfile() {
         const discountCode = discount_code || 'WELCOME10';
         setStatus({ 
           type: 'success', 
-          message: `Profile saved successfully! 🎉 Use code ${discountCode} for your first order!` 
+          message: `Profile saved successfully! 🎉 Use code: <strong>${discountCode}</strong> to get 20% off!` 
         });
         setIsFirstSubmission(false);
       } else {
