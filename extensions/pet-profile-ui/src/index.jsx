@@ -167,10 +167,10 @@ function PetProfile() {
       
       // Show appropriate success message based on first submission
       if (isFirstSubmission) {
-        const discountCode = discount_code || 'WELCOME10';
+        const discountCode = discount_code;
         setStatus({ 
           type: 'success', 
-          message: `Profile saved successfully! 🎉 Use code: <strong>${discountCode}</strong> to get 20% off!` 
+          message: `Profile saved successfully! 🎉 Use code: *${discountCode}* to get 20% off!` 
         });
         setIsFirstSubmission(false);
       } else {
