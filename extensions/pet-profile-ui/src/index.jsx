@@ -151,7 +151,7 @@ function PetProfile() {
     setSaving(true);
 
     try {
-      const response = await fetch("https://pet-profile-ruby.vercel.app/pet-profile", {
+      const response = await fetch("https://conferences-nam-doing-letting.trycloudflare.com/pet-profile", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -165,15 +165,16 @@ function PetProfile() {
       });
       if (!response.ok) throw new Error('Failed to save data');
       
+      const DISCOUNT = discount_code || 'PET20';
       // Show appropriate success message based on first submission
       if (isFirstSubmission) {
         setStatus({ 
           type: 'success', 
-          message: `Profile saved successfully! 🎉 Use code: ${discount_code} to get 20% off!` 
+          message: `Profile saved successfully! 🎉 Use code: ${DISCOUNT} to get 20% off!` 
         });
         setIsFirstSubmission(false);
       } else {
-        setStatus({ type: 'success', message: 'Profile updated successfully!' });
+        setStatus({ type: 'success', message: `Profile updated successfully!`});
       }
     } catch (err) {
       setStatus({ type: 'error', message: err.message });

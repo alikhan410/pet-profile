@@ -1,9 +1,9 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "26bfb4a80734f6fab53d796c21a16bcf"
-name = "pet-profile"
-handle = "pet-profile-3"
-application_url = "https://pet-profile-ruby.vercel.app"
+client_id = "6acd25526932cb9e1b886cf1f29015b2"
+name = "pet-profile-development"
+handle = "pet-profile-development"
+application_url = "https://conferences-nam-doing-letting.trycloudflare.com"
 embedded = true
 
 [webhooks]
@@ -22,14 +22,16 @@ api_version = "2025-07"
 scopes = "customer_read_customers,customer_write_customers,read_customers,write_customers"
 
 [auth]
-redirect_urls = [
-  "https://pet-profile-ruby.vercel.app/auth/callback",
-  "https://pet-profile-ruby.vercel.app/auth/shopify/callback",
-  "https://pet-profile-ruby.vercel.app/api/auth/callback"
-]
+redirect_urls = ["https://conferences-nam-doing-letting.trycloudflare.com/auth/callback", "https://conferences-nam-doing-letting.trycloudflare.com/auth/shopify/callback", "https://conferences-nam-doing-letting.trycloudflare.com/api/auth/callback"]
+
+[app_proxy]
+url = "https://conferences-nam-doing-letting.trycloudflare.com/app-proxy/pet-profile-development"
+subpath = "pet-profile-development"
+prefix = "apps"
 
 [pos]
 embedded = false
 
 [build]
 include_config_on_deploy = true
+automatically_update_urls_on_dev = true
