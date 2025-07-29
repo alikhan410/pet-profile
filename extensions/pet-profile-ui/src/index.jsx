@@ -151,7 +151,7 @@ function PetProfile() {
     setSaving(true);
 
     try {
-      const response = await fetch("https://conferences-nam-doing-letting.trycloudflare.com/pet-profile", {
+      const response = await fetch("https://pet-profile-ruby.vercel.app/pet-profile", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
