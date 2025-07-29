@@ -169,7 +169,7 @@ function PetProfile() {
       if (isFirstSubmission) {
         setStatus({ 
           type: 'success', 
-          message: 'Profile saved successfully! 🎉' 
+          message: `Profile saved successfully! 🎉 Use code: ${discount_code} to get 20% off!` 
         });
         setIsFirstSubmission(false);
       } else {
@@ -192,22 +192,7 @@ function PetProfile() {
         {/* 🔸 Use the customizable heading from settings, fallback to default text */}
         <Heading level={3}>{heading || 'Your Pet Profile'}</Heading>
 
-        {status?.type === 'success' && (
-          <Banner status="success">
-            {isFirstSubmission && status.message.includes('🎉') ? (
-              <BlockStack spacing="tight">
-                <TextBlock>Profile saved successfully! 🎉</TextBlock>
-                <BlockStack spacing="tight">
-                  <TextBlock>Use code: </TextBlock>
-                  <TextBlock emphasis>{discount_code}</TextBlock>
-                  <TextBlock> to get 20% off!</TextBlock>
-                </BlockStack>
-              </BlockStack>
-            ) : (
-              status.message
-            )}
-          </Banner>
-        )}
+        {status?.type === 'success' && <Banner status="success">{status.message}</Banner>}
         {status?.type === 'error' && <Banner status="critical">{status.message}</Banner>}
         {status?.type === 'info' && <Banner status="info">{status.message}</Banner>}
 
