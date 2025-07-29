@@ -3,7 +3,7 @@
 client_id = "6acd25526932cb9e1b886cf1f29015b2"
 name = "pet-profile-development"
 handle = "pet-profile-development"
-application_url = "https://provincial-sodium-administration-relatives.trycloudflare.com"
+application_url = "https://margaret-complexity-harley-nat.trycloudflare.com"
 embedded = true
 
 [build]
@@ -26,12 +26,7 @@ api_version = "2025-07"
 scopes = "customer_read_customers,customer_write_customers,write_customers,read_customers"
 
 [auth]
-redirect_urls = ["https://provincial-sodium-administration-relatives.trycloudflare.com/auth/callback", "https://provincial-sodium-administration-relatives.trycloudflare.com/auth/shopify/callback", "https://provincial-sodium-administration-relatives.trycloudflare.com/api/auth/callback"]
-
-[app_proxy]
-prefix = "apps"
-subpath = "pet-profile-development"
-url = "https://provincial-sodium-administration-relatives.trycloudflare.com/app-proxy/pet-profile-development"
+redirect_urls = ["https://margaret-complexity-harley-nat.trycloudflare.com/auth/callback", "https://margaret-complexity-harley-nat.trycloudflare.com/auth/shopify/callback", "https://margaret-complexity-harley-nat.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

@@ -151,7 +151,7 @@ function PetProfile() {
     setSaving(true);
 
     try {
-      const response = await fetch("https://provincial-sodium-administration-relatives.trycloudflare.com/app-proxy/pet-profile-development", {
+      const response = await fetch("https://margaret-complexity-harley-nat.trycloudflare.com/pet-profile", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
